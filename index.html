@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aviator Game Web Version</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0b1927;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .game-box {
+      width: 90%;
+      max-width: 400px;
+      background: #1e1e1e;
+      border: 3px solid white;
+      border-radius: 10px;
+      position: relative;
+      height: 400px;
+      overflow: hidden;
+    }
+
+    .multiplier {
+      font-size: 2.5rem;
+      color: #00ffcc;
+      font-weight: bold;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .plane {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+    }
+
+    .crash-line {
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      background-color: red;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .controls button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .start-btn {
+      background-color: #00b894;
+      color: white;
+    }
+
+    .cashout-btn {
+      background-color: #636e72;
+      color: white;
+    }
+
+    .cashout-btn.active {
+      background-color: #d63031;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-box">
+    <div class="crash-line"></div>
+    <div class="multiplier" id="multiplier">1.00x</div>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Airplane_silhouette.png/96px-Airplane_silhouette.png" id="plane" class="plane" alt="plane" />
+  </div>
+
+  <div class="controls">
+    <button class="start-btn" id="startBtn">START</button>
+    <button class="cashout-btn" id="cashOutBtn" disabled>CASH OUT</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const cashOutBtn = document.getElementById('cashOutBtn');
+    const multiplierText = document.getElementById('multiplier');
+    const plane = document.getElementById('plane');
+    const message = document.getElementById('message');
+
+    let multiplier = 1.0;
+    let interval;
+    let running = false;
+    let crashed = false;
+    let cashOut = false;
+    let topOffset = 60;
+
+    function startGame() {
+      if (running) return;
+      running = true;
+      crashed = false;
+      cashOut = false;
+      multiplier = 1.0;
+      topOffset = 60;
+      plane.style.top = topOffset + 'px';
+      multiplierText.textContent = multiplier.toFixed(2) + 'x';
+      message.textContent = '';
+
+      cashOutBtn.disabled = false;
+      cashOutBtn.classList.add('active');
+
+      interval = setInterval(() => {
+        multiplier += 0.03 + multiplier / 60;
+        multiplierText.textContent = multiplier.toFixed(2) + 'x';
+        topOffset -= 0.8;
+        plane.style.top = topOffset + 'px';
+
+        if (Math.random() < 0.001 * multiplier) {
+          endGame(false);
+        }
+      }, 50);
+    }
+
+    function endGame(success) {
+      clearInterval(interval);
+      running = false;
+      cashOutBtn.disabled = true;
+      cashOutBtn.classList.remove('active');
+
+      if (success) {
+        message.textContent = `✅ You cashed out at ${multiplier.toFixed(2)}x!`;
+      } else {
+        message.textContent = `💥 Plane crashed at ${multiplier.toFixed(2)}x! You lost.`;
+      }
+    }
+
+    function cashOutNow() {
+      if (!running || crashed) return;
+      cashOut = true;
+      endGame(true);
+    }
+
+    startBtn.addEventListener('click', startGame);
+    cashOutBtn.addEventListener('click', cashOutNow);
+  </script>
+
+</body>
+</html>
